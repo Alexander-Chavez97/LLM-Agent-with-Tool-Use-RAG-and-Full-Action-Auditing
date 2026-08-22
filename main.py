@@ -1,18 +1,30 @@
 """
-CLI entry point -- Gemini version.
+CLI entry point.
 
-Same shape as before: in-memory history list, replaced by real
-persistence in step 7. `types.Content`/`types.Part` are Gemini's
-equivalent of Anthropic's plain dicts -- more structured, less
-hand-rolled JSON.
+Creates one `sessions` row per run of this script. This is needed now
+(not just for step 7's memory) because action_log.session_id is a
+foreign key -- if we pass a non-null session_id, a matching row must
+already exist in `sessions`.
 """
 
 from google.genai import types
 from agent import run_turn
+from db.connection import get_connection
+
+
+def _create_session() -> str:
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("INSERT INTO sessions DEFAULT VALUES RETURNING id")
+            session_id = cur.fetchone()[0]
+    return str(session_id)
 
 
 def main():
     print("Agent CLI. Type 'quit' to exit.\n")
+    session_id = _create_session()
+    print(f"(session: {session_id})\n")
+
     history = []
 
     while True:
@@ -23,7 +35,7 @@ def main():
             continue
 
         history.append(types.Content(role="user", parts=[types.Part.from_text(text=user_input)]))
-        history = run_turn(history)
+        history = run_turn(history, session_id)
 
         last = history[-1]
         if last.role == "model":

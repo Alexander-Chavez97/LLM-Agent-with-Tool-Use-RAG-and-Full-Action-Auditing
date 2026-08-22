@@ -1,33 +1,34 @@
 """
-Core agent loop 
+Core agent loop -- Gemini version, now with action logging.
 
-Gemini calls it function_call / function_response, and uses role="model"
-instead of role="assistant". Notice tools/ is untouched -- that's the
-payoff of having a provider-agnostic tool registry.
+The only new thing versus the previous version: the tool-dispatch block
+is wrapped with timing + a call to log_action(). This is the ONE place
+in the whole codebase that calls log_action -- every tool, current and
+future, is covered automatically because of that.
 """
 
 import os
+import time
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
 from tools import TOOL_SCHEMAS, dispatch
+from logging_utils import log_action
 
 load_dotenv()
 
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
-MODEL = "gemini-3.7-flash"
+MODEL = "gemini-3.5-flash"
 MAX_TOOL_ITERATIONS = 8
 
 
 def _to_gemini_schema(json_schema: dict) -> dict:
     """
-    Our tool SCHEMA dicts (in tools/calculator.py etc.) use standard
-    JSON Schema, e.g. {"type": "object", "properties": {...}}. Gemini
-    expects the same structure but with uppercase type names, e.g.
-    {"type": "OBJECT", ...}. This is the one real adapter problem in
-    swapping providers -- everything else lines up conceptually.
+    Our tool SCHEMA dicts use standard JSON Schema, e.g.
+    {"type": "object", ...}. Gemini expects the same shape but with
+    uppercase type names, e.g. {"type": "OBJECT", ...}.
     """
     if not isinstance(json_schema, dict):
         return json_schema
@@ -55,10 +56,50 @@ _FUNCTION_DECLARATIONS = [
 _TOOLS = [types.Tool(function_declarations=_FUNCTION_DECLARATIONS)]
 
 
-def run_turn(history: list) -> list:
+def _dispatch_and_log(session_id: str, tool_name: str, tool_input: dict) -> dict:
     """
-    history is a list of google.genai.types.Content objects, alternating
-    role="user" / role="model".
+    Run one tool call, time it, and log exactly one action_log row
+    regardless of outcome. Returns the result dict to send back to the
+    model either way.
+    """
+    start = time.perf_counter()
+    try:
+        result = dispatch(tool_name, tool_input)
+        latency_ms = int((time.perf_counter() - start) * 1000)
+
+        # A tool can return {"error": ...} without raising -- e.g. bad
+        # SQL, division by zero. That's a failure for audit purposes
+        # even though dispatch() itself didn't throw.
+        tool_reported_error = isinstance(result, dict) and "error" in result
+        log_action(
+            session_id=session_id,
+            tool_name=tool_name,
+            tool_input=tool_input,
+            tool_output=result,
+            success=not tool_reported_error,
+            error_message=result.get("error") if tool_reported_error else None,
+            latency_ms=latency_ms,
+        )
+        return result
+
+    except Exception as e:
+        latency_ms = int((time.perf_counter() - start) * 1000)
+        log_action(
+            session_id=session_id,
+            tool_name=tool_name,
+            tool_input=tool_input,
+            tool_output=None,
+            success=False,
+            error_message=str(e),
+            latency_ms=latency_ms,
+        )
+        return {"error": str(e)}
+
+
+def run_turn(history: list, session_id: str) -> list:
+    """
+    Same contract as before, plus session_id so every tool call this
+    turn can be attributed to a session in action_log.
     """
     for _ in range(MAX_TOOL_ITERATIONS):
         response = client.models.generate_content(
@@ -77,26 +118,15 @@ def run_turn(history: list) -> list:
         ]
 
         if not function_calls:
-            # Final text answer -- no tool calls requested this round.
             return history
 
         response_parts = []
         for fc in function_calls:
-            try:
-                result = dispatch(fc.name, dict(fc.args))
-                response_parts.append(
-                    types.Part.from_function_response(name=fc.name, response=result)
-                )
-            except Exception as e:
-                response_parts.append(
-                    types.Part.from_function_response(
-                        name=fc.name, response={"error": str(e)}
-                    )
-                )
+            result = _dispatch_and_log(session_id, fc.name, dict(fc.args))
+            response_parts.append(
+                types.Part.from_function_response(name=fc.name, response=result)
+            )
 
-        # Function responses go back as role="user", same logic as
-        # Anthropic's tool_result: this is the environment/tool layer
-        # responding, not a human, but Gemini only has two roles too.
         history.append(types.Content(role="user", parts=response_parts))
 
     history.append(
