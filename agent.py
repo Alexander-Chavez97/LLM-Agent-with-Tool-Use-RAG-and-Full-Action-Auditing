@@ -20,7 +20,7 @@ load_dotenv()
 
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
-MODEL = "gemini-3.5-flash"
+MODEL = "gemini-3.6-flash"
 MAX_TOOL_ITERATIONS = 8
 
 
