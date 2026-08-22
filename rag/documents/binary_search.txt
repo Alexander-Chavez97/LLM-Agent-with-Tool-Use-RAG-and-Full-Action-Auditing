@@ -1,0 +1,9 @@
+Binary Search
+
+Binary search is an algorithm for finding a target value within a sorted array by repeatedly dividing the search interval in half. Rather than checking every element in sequence, the algorithm compares the target to the middle element of the current interval. If they match, the search ends. If the target is smaller, the search continues on the lower half; if larger, it continues on the upper half. Each comparison eliminates roughly half of the remaining candidates, which is what gives the algorithm its logarithmic time complexity.
+
+The precondition that the array must already be sorted is not optional. Binary search relies entirely on the ordering to decide which half to discard, so running it on unsorted data produces meaningless results without any error being raised. This is a common source of subtle bugs: a developer sorts data once during development, the algorithm appears to work, and then a later code change removes the sort step, silently breaking correctness rather than crashing.
+
+Binary search runs in O(log n) time, compared to O(n) for a linear scan. On a dataset of one million sorted elements, binary search needs at most about twenty comparisons to find any element, versus up to a million for linear search in the worst case. This efficiency is why sorted indexes, database B-trees, and version control bisection tools all lean on the same divide-and-halve idea.
+
+A common variant is finding the "insertion point" for a value that is not present in the array, which is useful for maintaining a sorted collection as new elements are added. Off-by-one errors around the midpoint calculation and the loop's termination condition are the most frequent implementation mistakes, which is why many standard libraries provide a correct, tested binary search rather than expecting every developer to reimplement it.

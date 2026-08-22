@@ -1,0 +1,9 @@
+Hash Tables
+
+A hash table is a data structure that maps keys to values using a hash function to compute an index into an underlying array. The hash function takes a key and produces a number, and that number determines which "bucket" of the array the key-value pair is stored in. When implemented well, this gives average-case O(1) time for insertion, lookup, and deletion, which is dramatically faster than the O(n) lookup of an unsorted list.
+
+The central challenge in hash table design is handling collisions -- cases where two different keys hash to the same bucket. Two common strategies exist. Chaining stores multiple entries per bucket, typically as a small linked list, and simply appends new colliding entries to that list. Open addressing instead finds a different empty slot in the array itself, using a probing sequence, when the initial slot is occupied. Each approach has different memory and cache-locality trade-offs, and different degradation behavior as the table fills up.
+
+A hash table's real-world performance depends heavily on the quality of its hash function. A poor hash function that clusters many keys into the same buckets degrades performance toward O(n), erasing the advantage the structure is supposed to provide. This is also the basis of a denial-of-service technique called hash flooding, where an attacker deliberately submits keys designed to collide, which is why many production language runtimes randomize their hash seed at startup.
+
+Resizing is another important operational detail. As more elements are inserted, the load factor -- the ratio of stored elements to bucket count -- rises, increasing collision likelihood. Most implementations automatically grow the underlying array and rehash all existing entries once the load factor crosses a threshold, trading a periodic O(n) rehashing cost for consistently fast amortized operations overall.

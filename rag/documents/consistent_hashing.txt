@@ -1,0 +1,9 @@
+Consistent Hashing
+
+Consistent hashing is a technique for distributing data across a set of servers (or cache nodes) in a way that minimizes how much data needs to move when a server is added or removed. With a naive approach -- hashing each key and taking the result modulo the number of servers -- adding or removing even a single server changes the modulus, which reassigns nearly every key to a different server, causing a massive and unnecessary wave of data movement or cache misses.
+
+Consistent hashing solves this by mapping both servers and keys onto the same conceptual ring of hash values, typically visualized as points around a circle. Each key is assigned to the first server encountered when moving clockwise around the ring from the key's own hash position. When a server is added, it only takes over a portion of the keys from its immediate neighbor on the ring; when a server is removed, only its keys need to be reassigned to its neighbor. Every other key-to-server assignment in the system stays exactly the same.
+
+A refinement called virtual nodes addresses an uneven-distribution problem with the basic scheme: with only one point per physical server on the ring, the space between servers can vary significantly, causing some servers to handle disproportionately more keys than others. Virtual nodes place many points on the ring for each physical server, so the combined space owned by that server is made up of many small, evenly scattered segments rather than one large contiguous one, smoothing out load distribution considerably.
+
+Consistent hashing underlies the design of many distributed systems and caching layers, including distributed hash tables, content delivery networks distributing content across edge servers, and distributed caches like those built on top of memcached, precisely because minimizing data movement during scaling events is critical to those systems' availability and performance during growth or failure.

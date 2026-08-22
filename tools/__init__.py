@@ -8,11 +8,12 @@ retrieve) means: write the tool module with a `run()` + `SCHEMA`, then
 add two lines here. agent.py itself never needs to change.
 """
 
-from tools import calculator, db_query
+from tools import calculator, db_query, rag_retrieve
 
 _REGISTRY = {
     "calculator": calculator,
     "db_query": db_query,
+    "rag_retrieve": rag_retrieve,
 }
 
 TOOL_SCHEMAS = [module.SCHEMA for module in _REGISTRY.values()]

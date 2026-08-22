@@ -1,0 +1,9 @@
+Quicksort
+
+Quicksort is a comparison-based sorting algorithm that works by selecting a "pivot" element from the array and partitioning the remaining elements into two groups: those less than the pivot and those greater than or equal to it. The pivot is then placed between these two groups, and the algorithm recursively applies the same process to each group independently, until every subgroup contains zero or one elements and the entire array is sorted.
+
+The algorithm's average-case time complexity is O(n log n), which matches the best sorting algorithms possible for comparison-based sorting. However, its worst-case complexity is O(n^2), which occurs when the chosen pivot consistently produces a highly unbalanced partition -- for example, always picking the first element as the pivot on an already-sorted array results in one partition of size zero and one of size n-1 at every step, degenerating into behavior similar to selection sort.
+
+Because worst-case behavior depends entirely on pivot selection, most practical implementations use strategies to make worst-case behavior unlikely in real-world data: choosing the pivot randomly, choosing the median of three sampled elements, or in some hardened standard library implementations, detecting adversarial patterns and switching to a different algorithm entirely partway through. This is why production sorting functions are rarely a naive textbook quicksort.
+
+Quicksort is also notable for being an in-place algorithm, meaning it requires only a small, constant amount of additional memory beyond the input array itself (aside from recursion stack space), unlike merge sort, which requires additional memory proportional to the size of the array being sorted. This memory efficiency is a major reason quicksort remains a common default choice in standard libraries despite its worst-case behavior.

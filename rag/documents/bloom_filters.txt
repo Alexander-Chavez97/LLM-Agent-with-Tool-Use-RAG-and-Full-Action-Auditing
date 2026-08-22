@@ -1,0 +1,9 @@
+Bloom Filters
+
+A Bloom filter is a space-efficient probabilistic data structure used to test whether an element is a member of a set, with a specific and unusual trade-off: it can produce false positives (incorrectly reporting that an element is present when it is not) but never false negatives (if it reports an element is absent, that is always correct). This asymmetry makes it useful specifically as a fast pre-check before a more expensive, definitive lookup.
+
+Internally, a Bloom filter is just a bit array, initially all set to zero, along with several independent hash functions. To add an element, the element is passed through each hash function, and the bit at each resulting position is set to one. To check whether an element might be present, the same hash functions are applied, and if every corresponding bit is set to one, the filter reports the element as possibly present; if even one of those bits is zero, the element is definitely not in the set.
+
+False positives arise because multiple different elements, through different combinations of hash functions, can happen to set the exact same bits, causing the filter to report a match for something that was never actually inserted. The false-positive rate can be tuned by adjusting the size of the bit array and the number of hash functions relative to the number of elements expected to be inserted, trading memory usage against accuracy.
+
+A well-known real-world use is in database systems and distributed storage engines, where a Bloom filter is checked before an expensive disk read: if the filter says an element is definitely absent, the disk read is skipped entirely, saving significant time, and only a possible-positive result triggers the actual, authoritative lookup. This pattern shows up in systems like Cassandra and many LSM-tree-based storage engines to avoid unnecessary disk I/O for keys that do not exist.

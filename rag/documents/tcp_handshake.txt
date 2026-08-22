@@ -1,0 +1,9 @@
+TCP Three-Way Handshake
+
+TCP establishes a reliable connection between two hosts using a three-step exchange known as the three-way handshake, which happens before any actual application data is transmitted. The purpose of the handshake is for both sides to agree on initial sequence numbers and confirm that both directions of communication are actually working, since a network path being reachable in one direction does not guarantee it works in the other.
+
+The process begins when the client sends a SYN (synchronize) packet to the server, containing a randomly chosen initial sequence number. The server responds with a SYN-ACK packet, which simultaneously acknowledges the client's sequence number and proposes its own initial sequence number for data flowing in the other direction. Finally, the client sends an ACK packet acknowledging the server's sequence number, at which point the connection is considered established and either side may begin sending data.
+
+Choosing sequence numbers somewhat unpredictably, rather than always starting from a fixed number, exists partly for security reasons: predictable sequence numbers made certain connection-hijacking and spoofing attacks easier in early TCP implementations, since an attacker who could guess the expected sequence number could inject forged packets into an existing connection.
+
+Tearing down a TCP connection is a separate, comparably careful process, generally involving a four-step exchange of FIN and ACK packets, because either side may still have data left to send even after the other side has indicated it is finished. A connection stuck in a partially closed state -- commonly seen as sockets lingering in a TIME_WAIT state -- is a normal, deliberate part of this teardown process, existing to ensure delayed or duplicate packets from the old connection are not mistakenly associated with a future connection reusing the same port.

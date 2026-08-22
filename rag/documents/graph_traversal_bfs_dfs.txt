@@ -1,0 +1,9 @@
+Graph Traversal: BFS and DFS
+
+Breadth-first search (BFS) and depth-first search (DFS) are the two fundamental algorithms for systematically visiting every node in a graph, and nearly every other graph algorithm is built as a variation or extension of one of them. Both start at a chosen node and explore outward, but they differ in the order they visit neighboring nodes, which gives them very different practical properties.
+
+BFS explores the graph level by level: it visits all neighbors of the starting node first, then all of those neighbors' unvisited neighbors, and so on, using a queue to keep track of which node to visit next. This level-by-level exploration means BFS is the natural choice when the goal is finding the shortest path between two nodes in an unweighted graph, since the first time BFS reaches the target node, it is guaranteed to have done so via the fewest possible edges.
+
+DFS instead explores as far as possible along one branch before backtracking, using a stack (either explicitly or via recursion) rather than a queue. This makes DFS naturally suited to problems like detecting cycles in a graph, finding connected components, or performing a topological sort of a directed acyclic graph, where the goal is understanding the graph's overall structure rather than finding a shortest route.
+
+Both algorithms run in O(V + E) time for a graph with V vertices and E edges, since each is visited and each edge is examined a constant number of times. The choice between them in practice is rarely about performance and almost always about which traversal order matches the shape of the problem -- shortest-path and "closest first" problems favor BFS, while structural questions about the graph itself favor DFS.

@@ -1,0 +1,9 @@
+Virtual Memory and Paging
+
+Virtual memory is a technique that gives each running process the illusion of having its own large, contiguous block of memory, independent of how physical RAM is actually laid out or shared among other processes. The operating system maintains a mapping, called a page table, that translates the virtual addresses a program uses into the actual physical addresses in RAM (or on disk) where that data currently resides.
+
+Memory is managed in fixed-size chunks called pages, typically 4 kilobytes on many common systems, rather than being tracked byte by byte. This fixed sizing keeps the bookkeeping manageable and allows the operating system to place pages anywhere in physical memory without the program needing any awareness of where its data physically lives; the program only ever deals in virtual addresses, which the hardware and OS translate transparently on every memory access.
+
+Because physical RAM is finite, an operating system may need to move a page that is not currently in use out to disk, into an area called swap space, to free up RAM for a page that is actively needed -- a process called paging out. When the original page is accessed again, it is paged back in, an operation many orders of magnitude slower than accessing RAM directly, since it involves a disk read. A system spending excessive time paging pages in and out under memory pressure, to the point that useful work stalls, is said to be thrashing.
+
+Virtual memory also provides process isolation as a side effect of its core design: because each process has its own independent page table, one process's virtual addresses cannot accidentally reference another process's physical memory, even if both processes happen to use identical virtual addresses internally. This isolation is fundamental to operating system security and stability, preventing a bug or crash in one process from directly corrupting another process's memory.

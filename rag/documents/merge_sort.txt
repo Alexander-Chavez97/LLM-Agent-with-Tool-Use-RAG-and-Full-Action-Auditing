@@ -1,0 +1,9 @@
+Merge Sort
+
+Merge sort is a comparison-based sorting algorithm built on the divide-and-conquer strategy: it splits an array into two roughly equal halves, recursively sorts each half independently, and then merges the two sorted halves back into a single sorted array. The merge step works by repeatedly comparing the front elements of each half and appending the smaller one to the result, which is straightforward once both halves are already individually sorted.
+
+Unlike quicksort, merge sort guarantees O(n log n) time complexity in all cases -- best, average, and worst -- because the splitting pattern never depends on the data's existing order the way quicksort's pivot selection does. This predictability makes merge sort attractive in contexts where consistent performance matters more than average-case speed, such as systems with strict latency requirements.
+
+The trade-off is memory: a standard implementation of merge sort requires additional space proportional to the size of the array being merged, since the merge step typically needs a separate array to write results into before copying them back. This makes merge sort less memory-efficient than an in-place algorithm like quicksort, which can matter significantly when sorting very large datasets that barely fit in available memory.
+
+Merge sort has an important property that quicksort does not guarantee by default: stability. A stable sort preserves the relative order of elements that compare as equal. This matters in practical scenarios such as sorting a list of records first by last name and then, in a separate pass, by department -- a stable sort ensures that within each department, the names remain in their previously sorted order, whereas an unstable sort provides no such guarantee.
